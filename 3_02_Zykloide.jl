@@ -18,8 +18,8 @@ end
 
 # ╔═╡ 686cc0fe-9691-4393-a032-8069bffb056a
 begin
-	using PlutoUI
-	using PlutoUI: Slider
+    using PlutoUI
+    using PlutoUI: Slider
 end
 
 # ╔═╡ 20e0b94d-b82d-4faf-aa16-10c3ea00c2cf
@@ -30,13 +30,13 @@ using Printf
 
 # ╔═╡ 2d2f6edf-16d5-4d46-ad54-2657064b6cc1
 begin
-	using CairoMakie
-	set_theme!(theme_latexfonts();
-			   fontsize = 16,
-			   linewidth = 3,
-			   markersize = 16,
-			   Lines = (cycle = Cycle([:color, :linestyle], covary = true),),
-			   Scatter = (cycle = Cycle([:color, :marker], covary = true),))
+    using CairoMakie
+    set_theme!(theme_latexfonts();
+               fontsize = 16,
+               linewidth = 3,
+               markersize = 16,
+               Lines = (cycle = Cycle([:color, :linestyle], covary = true),),
+               Scatter = (cycle = Cycle([:color, :marker], covary = true),))
 end
 
 # ╔═╡ 04ef5781-8dc4-4531-913b-4a24c69d9e27
@@ -108,16 +108,16 @@ format_decimal_comma(v) = replace(@sprintf("%.2f", v), "." => "{,}")
 
 # ╔═╡ 76fc1015-a08e-4416-a5dc-173c57b29272
 begin
-	# Points on the cycloid and on the rolling circle with radius `r`.
-	# As in the lecture notes, the u-axis points downward.
-	cycloid_point(τ, r) = Point2f(r * (τ - sin(τ)), r * (1 - cos(τ)))
-	center_point(τ, r) = Point2f(r * τ, r)
-	contact_point(τ, r) = Point2f(r * τ, 0)
+    # Points on the cycloid and on the rolling circle with radius `r`.
+    # As in the lecture notes, the u-axis points downward.
+    cycloid_point(τ, r) = Point2f(r * (τ - sin(τ)), r * (1 - cos(τ)))
+    center_point(τ, r) = Point2f(r * τ, r)
+    contact_point(τ, r) = Point2f(r * τ, 0)
 
-	# Point on the circle in its position for the parameter `τ`, rotated by the
-	# angle `s` from the contact point; `ρ` is the distance from the center.
-	# For `s = τ` and `ρ = r`, this is the point on the cycloid.
-	circle_point(τ, s, r; ρ = r) = Point2f(r * τ - ρ * sin(s), r - ρ * cos(s))
+    # Point on the circle in its position for the parameter `τ`, rotated by the
+    # angle `s` from the contact point; `ρ` is the distance from the center.
+    # For `s = τ` and `ρ = r`, this is the point on the cycloid.
+    circle_point(τ, s, r; ρ = r) = Point2f(r * τ - ρ * sin(s), r - ρ * cos(s))
 end
 
 # ╔═╡ 4c53b3fd-eee8-4940-8e1e-0cb3c693eddb
@@ -129,74 +129,74 @@ and the part of the cycloid generated up to the parameter `τ`.
 The figure is updated when `τ` changes.
 """
 function cycloid_figure(τ::Observable; r = 1.0)
-	color_rolled = RGBf(0.0, 0.0, 0.7) # as blue!70!black in the lecture notes
-	color_point = RGBf(0.8, 0.1, 0.1)
-	color_aux = RGBf(0.4, 0.4, 0.4)
-	xmin, xmax = -1.3 * r, 7.6 * r
+    color_rolled = RGBf(0.0, 0.0, 0.7) # as blue!70!black in the lecture notes
+    color_point = RGBf(0.8, 0.1, 0.1)
+    color_aux = RGBf(0.4, 0.4, 0.4)
+    xmin, xmax = -1.3 * r, 7.6 * r
 
-	fig = Figure(size = (800, 380))
-	ax = Axis(fig[1, 1];
-			  aspect = DataAspect(), yreversed = true,
-			  # leave some space above u = 0 to avoid clipping the thick lines
-			  limits = (xmin, xmax, -0.2 * r, 2.3 * r),
-			  xaxisposition = :top, xticksvisible = false,
-			  topspinevisible = false, rightspinevisible = false,
-			  bottomspinevisible = false,
-			  xgridvisible = false, ygridvisible = false,
-			  xticks = ([0, π * r, 2π * r], [L"0", L"\pi r", L"2 \pi r"]),
-			  yticks = ([0, r, 2r], [L"0", L"r", L"2 r"]),
-			  xlabel = L"x", ylabel = L"u")
+    fig = Figure(size = (800, 380))
+    ax = Axis(fig[1, 1];
+              aspect = DataAspect(), yreversed = true,
+              # leave some space above u = 0 to avoid clipping the thick lines
+              limits = (xmin, xmax, -0.2 * r, 2.3 * r),
+              xaxisposition = :top, xticksvisible = false,
+              topspinevisible = false, rightspinevisible = false,
+              bottomspinevisible = false,
+              xgridvisible = false, ygridvisible = false,
+              xticks = ([0, π * r, 2π * r], [L"0", L"\pi r", L"2 \pi r"]),
+              yticks = ([0, r, 2r], [L"0", L"r", L"2 r"]),
+              xlabel = L"x", ylabel = L"u")
 
-	# the x-axis, along which the circle rolls
-	lines!(ax, [Point2f(xmin, 0), Point2f(xmax, 0)];
-		   	color = :black, linewidth = 1.5, linestyle = :solid)
-	# initial position of the circle
-	lines!(ax, [circle_point(0, s, r) for s in range(0, 2π, length = 200)];
-		   	color = color_aux, linestyle = :dot, linewidth = 1.5)
-	# part of the cycloid generated so far
-	lines!(ax, @lift([cycloid_point(t, r) for t in range(0, $τ, length = 400)]);
-		   	color = :black, linewidth = 4, linestyle = :solid)
-	# circle in its current position
-	lines!(ax, @lift([circle_point($τ, s, r) for s in range(0, 2π, length = 200)]);
-		   	color = :black, linewidth = 2, linestyle = :solid)
-	# distance traveled and rolled arc, both of length r τ
-	lines!(ax, @lift([Point2f(0, 0), contact_point($τ, r)]);
-		   	color = color_rolled, linewidth = 7, linestyle = :solid)
-	lines!(ax, @lift([circle_point($τ, s, r) for s in range(0, $τ, length = 200)]);
-		   	color = color_rolled, linewidth = 7, linestyle = :solid)
-	text!(ax, @lift(Point2f(r * $τ / 2, 0.08 * r)); text = L"r \tau",
-		   color = color_rolled, align = (:center, :top),
-		   visible = @lift($τ > 0.6))
-	# radii to the contact point and to the point on the cycloid, angle τ
-	lines!(ax, @lift([contact_point($τ, r), center_point($τ, r), cycloid_point($τ, r)]);
-		   	color = color_aux, linewidth = 1.5, linestyle = :solid)
-	lines!(ax, @lift([circle_point($τ, s, r; ρ = 0.3 * r) for s in range(0, $τ, length = 60)]);
-		   	color = color_aux, linewidth = 1.5, linestyle = :solid)
-	text!(ax, @lift(circle_point($τ, $τ / 2, r; ρ = 0.5 * r)); text = L"\tau",
-		   align = (:center, :center), visible = @lift($τ > 0.6))
-	scatter!(ax, @lift([center_point($τ, r), contact_point($τ, r)]);
+    # the x-axis, along which the circle rolls
+    lines!(ax, [Point2f(xmin, 0), Point2f(xmax, 0)];
+            color = :black, linewidth = 1.5, linestyle = :solid)
+    # initial position of the circle
+    lines!(ax, [circle_point(0, s, r) for s in range(0, 2π, length = 200)];
+            color = color_aux, linestyle = :dot, linewidth = 1.5)
+    # part of the cycloid generated so far
+    lines!(ax, @lift([cycloid_point(t, r) for t in range(0, $τ, length = 400)]);
+            color = :black, linewidth = 4, linestyle = :solid)
+    # circle in its current position
+    lines!(ax, @lift([circle_point($τ, s, r) for s in range(0, 2π, length = 200)]);
+            color = :black, linewidth = 2, linestyle = :solid)
+    # distance traveled and rolled arc, both of length r τ
+    lines!(ax, @lift([Point2f(0, 0), contact_point($τ, r)]);
+            color = color_rolled, linewidth = 7, linestyle = :solid)
+    lines!(ax, @lift([circle_point($τ, s, r) for s in range(0, $τ, length = 200)]);
+            color = color_rolled, linewidth = 7, linestyle = :solid)
+    text!(ax, @lift(Point2f(r * $τ / 2, 0.08 * r)); text = L"r \tau",
+           color = color_rolled, align = (:center, :top),
+           visible = @lift($τ > 0.6))
+    # radii to the contact point and to the point on the cycloid, angle τ
+    lines!(ax, @lift([contact_point($τ, r), center_point($τ, r), cycloid_point($τ, r)]);
+            color = color_aux, linewidth = 1.5, linestyle = :solid)
+    lines!(ax, @lift([circle_point($τ, s, r; ρ = 0.3 * r) for s in range(0, $τ, length = 60)]);
+            color = color_aux, linewidth = 1.5, linestyle = :solid)
+    text!(ax, @lift(circle_point($τ, $τ / 2, r; ρ = 0.5 * r)); text = L"\tau",
+           align = (:center, :center), visible = @lift($τ > 0.6))
+    scatter!(ax, @lift([center_point($τ, r), contact_point($τ, r)]);
              color = color_aux, marker = :circle, markersize = 8)
-	scatter!(ax, @lift([cycloid_point($τ, r)]);
+    scatter!(ax, @lift([cycloid_point($τ, r)]);
              color = color_point, marker = :circle, markersize = 18)
 
-	# value of τ and explanation below the plot
-	Label(fig[2, 1], lift(t -> L"\tau = %$(format_decimal_comma(t / π))\,\pi", τ);
-		  tellwidth = false)
-	explanation_rolling = rich("Der Kreis rollt ohne zu gleiten: ",
-							   "Der blaue Bogen ist so lang wie die Strecke ",
-							   rich("rτ"; font = :italic), ".")
-	explanation_cycloid = L"\text{Zykloide}\quad x = r (\tau - \sin \tau), \ u = r (1 - \cos \tau), \ \tau \in [0, 2 \pi]"
-	# rich text and LaTeX strings have different types, so we need `Observable{Any}`
-	explanation = Observable{Any}(explanation_rolling)
-	on(τ; update = true) do t
-		explanation[] = t < 2π - 1.0e-8 ? explanation_rolling : explanation_cycloid
-	end
-	Label(fig[3, 1], explanation; tellwidth = false)
-	rowgap!(fig.layout, 6)
-	# fixed height to avoid a jumping figure when the explanation changes
-	rowsize!(fig.layout, 3, Fixed(24))
+    # value of τ and explanation below the plot
+    Label(fig[2, 1], lift(t -> L"\tau = %$(format_decimal_comma(t / π))\,\pi", τ);
+          tellwidth = false)
+    explanation_rolling = rich("Der Kreis rollt ohne zu gleiten: ",
+                               "Der blaue Bogen ist so lang wie die Strecke ",
+                               rich("rτ"; font = :italic), ".")
+    explanation_cycloid = L"\text{Zykloide}\quad x = r (\tau - \sin \tau), \ u = r (1 - \cos \tau), \ \tau \in [0, 2 \pi]"
+    # rich text and LaTeX strings have different types, so we need `Observable{Any}`
+    explanation = Observable{Any}(explanation_rolling)
+    on(τ; update = true) do t
+        explanation[] = t < 2π - 1.0e-8 ? explanation_rolling : explanation_cycloid
+    end
+    Label(fig[3, 1], explanation; tellwidth = false)
+    rowgap!(fig.layout, 6)
+    # fixed height to avoid a jumping figure when the explanation changes
+    rowsize!(fig.layout, 3, Fixed(24))
 
-	return fig
+    return fig
 end
 
 # ╔═╡ 763c2107-bc01-40c9-8892-94ebae03b6ac
@@ -213,15 +213,15 @@ seconds, the rolling motion for `time_rolling` seconds, and a still image
 of the complete cycloid for `time_end` seconds.
 """
 function record_cycloid(; r = 1.0, framerate = 30,
-						time_start = 1.5, time_rolling = 8.0, time_end = 3.0)
-	τ = Observable(0.0)
-	fig = cycloid_figure(τ; r)
-	times = range(0, time_start + time_rolling + time_end, step = 1 / framerate)
-	video_file = joinpath(mktempdir(), "cycloid.mp4")
-	record(fig, video_file, times; framerate) do t
-		τ[] = 2π * clamp((t - time_start) / time_rolling, 0, 1)
-	end
-	return video_file
+                        time_start = 1.5, time_rolling = 8.0, time_end = 3.0)
+    τ = Observable(0.0)
+    fig = cycloid_figure(τ; r)
+    times = range(0, time_start + time_rolling + time_end, step = 1 / framerate)
+    video_file = joinpath(mktempdir(), "cycloid.mp4")
+    record(fig, video_file, times; framerate) do t
+        τ[] = 2π * clamp((t - time_start) / time_rolling, 0, 1)
+    end
+    return video_file
 end
 
 # ╔═╡ ccd14c4f-479b-4db7-99b2-2006aab68204
@@ -1897,8 +1897,8 @@ version = "4.1.0+0"
 # ╟─3936bfd1-eb9f-4950-baa7-c38ef6509de3
 # ╟─763c2107-bc01-40c9-8892-94ebae03b6ac
 # ╟─74004499-0506-49aa-8664-86a86b87e90f
-# ╟─ccd14c4f-479b-4db7-99b2-2006aab68204
 # ╟─ca9b301d-141d-404c-8b8c-c697ebb9f173
+# ╟─ccd14c4f-479b-4db7-99b2-2006aab68204
 # ╟─ffc7095c-3651-4002-9bd9-5b6777b389a4
 # ╟─cf2ed291-4471-46ab-908b-c64a29b9455c
 # ╟─f1d34bb9-193f-4b84-9940-9d50c7d95ebc
