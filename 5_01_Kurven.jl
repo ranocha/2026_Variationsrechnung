@@ -16,19 +16,13 @@ macro bind(def, element)
     #! format: on
 end
 
-# ╔═╡ 686cc0fe-9691-4393-a032-8069bffb056a
+# ╔═╡ f05a5972-58b1-4788-a0a8-24966d6714da
 begin
     using PlutoUI
     using PlutoUI: Slider
 end
 
-# ╔═╡ 20e0b94d-b82d-4faf-aa16-10c3ea00c2cf
-using LaTeXStrings
-
-# ╔═╡ 9fa5b405-3318-417f-a26e-4fdc0e2f2921
-using Printf
-
-# ╔═╡ 2d2f6edf-16d5-4d46-ad54-2657064b6cc1
+# ╔═╡ e21f7893-67e3-42ba-82e8-1297502cc1ea
 begin
     using CairoMakie
     set_theme!(theme_latexfonts();
@@ -39,196 +33,400 @@ begin
                Scatter = (cycle = Cycle([:color, :marker], covary = true),))
 end
 
-# ╔═╡ 04ef5781-8dc4-4531-913b-4a24c69d9e27
-md"""
-# 3.2 Die Brachistochrone: Zykloidenbogen
+# ╔═╡ b0d18f0a-7ae7-4c9e-9e29-2f190aaae1c2
+using LaTeXStrings
 
-Die schnellste Bahn im Brachistochronenproblem ist ein Zykloidenbogen.
-Eine Zykloide ist die Bahn eines Punktes auf einem Kreis, der ohne zu gleiten auf einer Geraden abrollt.
-Wie in den Vorlesungsnotizen zeigt die ``u``-Achse nach unten, und der Kreis rollt unter der ``x``-Achse ab.
+# ╔═╡ e6c64c80-773b-11ef-2379-bf6609137e69
+md"""
+# 5.1 Parametrisierte Kurven
+
 """
 
-# ╔═╡ a06ebd00-a941-41a0-a178-842629cc51fd
+# ╔═╡ 4071e4ca-4667-4015-b0fe-dcd7e778449a
 md"""
-## Abrollen des Kreises
+## Hilbert-Kurve
 
-Ein Kreis mit Radius ``r`` berühre anfangs die ``x``-Achse im Ursprung.
-Rollt er ohne zu gleiten um den Winkel ``\tau`` weiter, so ist der abgerollte Bogen so lang wie die zurückgelegte Strecke ``r \tau``.
-Der Mittelpunkt liegt dann bei ``(r \tau, r)``, der Berührpunkt bei ``(r \tau, 0)``, und der Punkt, der anfangs den Ursprung berührt hat, bei
-
-$$x = r (\tau - \sin \tau), \qquad u = r (1 - \cos \tau).$$
-
-In der Abbildung sind die zurückgelegte Strecke und der abgerollte Bogen blau, die Anfangslage des Kreises ist gepunktet.
-Mit dem Schieberegler können Sie den Winkel ``\tau`` verändern.
+Die [Hilbert-Kurve](https://de.wikipedia.org/wiki/Hilbert-Kurve)
+ist eine raumfüllende Kurve. Solche raumfüllenden Kurven haben viele Anwendungen, etwa zur effizienten Iteration über Baum-basierte Datenstrukturen.
 """
 
-# ╔═╡ 3936bfd1-eb9f-4950-baa7-c38ef6509de3
+# ╔═╡ 79b6fedd-0fbb-44bb-a726-8798d4de6548
 md"""
-``\tau / \pi`` = $(@bind τ_over_π Slider(0.0:0.01:2.0, default = 0.7, show_value = true))
+``n`` = $(@bind n_hilbert Slider(1:9, default = 1, show_value = true))
 """
 
-# ╔═╡ 763c2107-bc01-40c9-8892-94ebae03b6ac
-cycloid_figure(Observable(τ_over_π * π))
-
-# ╔═╡ 74004499-0506-49aa-8664-86a86b87e90f
+# ╔═╡ bfb6d0d1-997c-4751-897f-910a66243da1
 md"""
-## Animation
+### Video
 
-Die folgende Animation zeigt, wie der Kreis einmal ganz abrollt und dabei einen Zykloidenbogen erzeugt.
-Am Ende ist der ganze Kreis blau: Der abgerollte Umfang ``2 \pi r`` ist so lang wie die zurückgelegte Strecke.
+Im Video wird die Kurve für die Iterationen ``n = 1, \dots, 6`` nacheinander durchlaufen.
+Die vorherige Iteration bleibt dabei grau im Hintergrund stehen; so erkennt man die rekursive Konstruktion: Jedes Teilquadrat wird in vier kleinere Teilquadrate zerlegt, die die neue Iteration nacheinander durchläuft.
+Die ``n``-te Iteration läuft durch die Mittelpunkte aller ``4^n`` Teilquadrate mit Seitenlänge ``2^{-n}``, kommt also jedem Punkt des Quadrats bis auf den Abstand ``2^{-n} / \sqrt{2}`` nahe.
+Ihre Länge ``2^n - 2^{-n}`` wächst dabei über alle Grenzen.
 Beim ersten Ausführen dauert die Erzeugung des Videos einige Sekunden.
 """
 
-# ╔═╡ ccd14c4f-479b-4db7-99b2-2006aab68204
-video_file = record_cycloid();
+# ╔═╡ 4d37daf1-3888-4321-bdef-00cd15e0d601
+md"""
+## Geschwindigkeit und Beschleunigung
 
-# ╔═╡ ca9b301d-141d-404c-8b8c-c697ebb9f173
-LocalResource(video_file)
+Wir betrachten die parametrisierte Kurve
 
-# ╔═╡ 9570c40f-0324-4119-ad65-0e7063a56422
+$$u\colon [0, 2\pi] \to \mathbb{R}^2, \quad u(t) = \begin{pmatrix} \cos(t) \\ \sin(t) \end{pmatrix}.$$
+
+Der Tangentenvektor (Geschwindigkeitsvektor) ist
+
+$$\dot{u}(t) = \begin{pmatrix} -\sin(t) \\ \cos(t) \end{pmatrix}$$
+
+und der Beschleunigungsvektor ist
+
+$$\ddot{u}(t) = \begin{pmatrix} -\cos(t) \\ -\sin(t) \end{pmatrix}.$$
+"""
+
+# ╔═╡ 2e8a222b-1326-4ee8-b454-a786b4d163a0
+md"""
+``t`` = $(@bind t_circle Slider(range(0.0, 2π, length = 101), default = 0, show_value = true))
+"""
+
+# ╔═╡ de3ff6a5-50e7-4d8b-ac96-5d7a2d2de94e
+md"""
+### Video
+
+Der Punkt läuft einmal um den Kreis.
+Der Tangentenvektor hat stets die Länge ``1`` und steht senkrecht auf dem Radius; der Beschleunigungsvektor zeigt zum Mittelpunkt.
+"""
+
+# ╔═╡ 90bcf152-0db7-46bc-a3c2-1a7df8acaaac
+md"""
+## Zykloide
+
+Ein Kreis mit Radius ``r`` rolle mehrmals ohne zu gleiten unter der ``x``-Achse ab.
+Ein Punkt auf dem Kreis, der anfangs im Ursprung liegt, durchläuft dann mehrere Zykloidenbögen
+
+$$u(\tau) = r \begin{pmatrix} \tau - \sin(\tau) \\ 1 - \cos(\tau) \end{pmatrix}, \quad \tau \in [0, 6\pi].$$
+
+Wie bei der Brachistochrone zeigt die zweite Koordinate nach unten.
+Die Kurve ist beliebig oft differenzierbar mit dem Tangentenvektor
+
+$$\dot{u}(\tau) = r \begin{pmatrix} 1 - \cos(\tau) \\ \sin(\tau) \end{pmatrix}.$$
+
+Für ``\tau = 0, 2\pi, 4\pi, 6\pi`` ist ``\dot{u}(\tau) = 0``; dort ist die Kurve nicht regulär, und ihre Spur hat Spitzen.
+Der Pfeil zeigt den Tangentenvektor: Er wird zu den Spitzen hin immer kürzer, und seine Richtung kehrt sich dort um.
+Der gestrichelte Kreis ist der rollende Kreis in seiner aktuellen Lage.
+"""
+
+# ╔═╡ 04445b06-e26c-4d87-a917-f31dd1b0fabb
+md"""
+``\tau / \pi`` = $(@bind τ_over_π_cycloid Slider(0.0:0.01:6.0, default = 1.5, show_value = true))
+"""
+
+# ╔═╡ 2c6ce84d-f4da-45ce-ba9f-5481a5075ac8
+md"""
+### Video
+
+Der Kreis rollt dreimal ab.
+An den Spitzen ist der Tangentenvektor null: Der Punkt kommt dort kurz zum Stillstand und kehrt seine Richtung um.
+"""
+
+# ╔═╡ 4340e86a-e0fe-4cfe-9d1a-9bb686cbb2fd
 md"""
 # Appendix
 
 Hier finden Sie zusätzlich verwendeten Code sowie weitere Hilfsmittel.
 """
 
-# ╔═╡ 0417be6b-910f-4029-a03a-2d5bf972ea1f
+# ╔═╡ 42fa44f5-06df-41a1-9b33-71386a0cb6d2
 space = html"<br><br><br>";
 
-# ╔═╡ ffc7095c-3651-4002-9bd9-5b6777b389a4
+# ╔═╡ 96351793-9bcc-4376-9c95-b6b42f061ad8
 space
 
-# ╔═╡ cf2ed291-4471-46ab-908b-c64a29b9455c
+# ╔═╡ bc148aac-1ef7-4611-b187-72f1255ff05f
 space
 
-# ╔═╡ f1d34bb9-193f-4b84-9940-9d50c7d95ebc
+# ╔═╡ 92377a23-ac4f-4d5f-9d57-a0a03693307c
 space
 
-# ╔═╡ 14660100-5804-4687-b5ed-116ff3c66b6e
+# ╔═╡ e771a1f9-6813-4383-b34d-83530de4aa2e
 md"""
 #### Installing packages
 
-_First, we will install (and compile) some packages. This can take a few minutes when running this notebook for the first time._
+_First, we will install (and compile) some packages. This can take a few minutes when  running this notebook for the first time._
 """
 
-# ╔═╡ c8b44bda-3578-426d-a90c-5e1ff9587d72
-# Format a number with two decimal places and a decimal comma for LaTeX labels
-format_decimal_comma(v) = replace(@sprintf("%.2f", v), "." => "{,}")
+# ╔═╡ 0b22c223-c574-4d29-a988-b7f8ef0cc3fe
+# Arrow shafts as thick as the lines (`linewidth = 3` in `set_theme!`),
+# tips with the default size of `arrows2d!`
+arrow_style = (shaftwidth = 3, tipwidth = 14, tiplength = 8,
+               minshaftlength = 0)
 
-# ╔═╡ 76fc1015-a08e-4416-a5dc-173c57b29272
-begin
-    # Points on the cycloid and on the rolling circle with radius `r`.
-    # As in the lecture notes, the u-axis points downward.
-    cycloid_point(τ, r) = Point2f(r * (τ - sin(τ)), r * (1 - cos(τ)))
-    center_point(τ, r) = Point2f(r * τ, r)
-    contact_point(τ, r) = Point2f(r * τ, 0)
+# ╔═╡ 1f78b652-3d70-46a9-993b-9af85398177a
+"""
+    arrow_legend_element(color)
 
-    # Point on the circle in its position for the parameter `τ`, rotated by the
-    # angle `s` from the contact point; `ρ` is the distance from the center.
-    # For `s = τ` and `ρ = r`, this is the point on the cycloid.
-    circle_point(τ, s, r; ρ = r) = Point2f(r * τ - ρ * sin(s), r - ρ * cos(s))
+Create a legend element showing an arrow with the given `color`.
+Makie shows arrows as gray boxes in legends by default.
+"""
+function arrow_legend_element(color)
+    return [LineElement(color = color, linestyle = :solid, linewidth = 3,
+                        points = Point2f[(0.0, 0.5), (0.8, 0.5)]),
+            MarkerElement(color = color, marker = :rtriangle, markersize = 14,
+                          points = Point2f[(0.8, 0.5)])]
 end
 
-# ╔═╡ 4c53b3fd-eee8-4940-8e1e-0cb3c693eddb
+# ╔═╡ 3147c22b-9859-4b67-b345-59ecdfaf504e
 """
-    cycloid_figure(τ::Observable; r = 1.0)
+    hilbert_curve(n)
 
-Create a figure showing the circle with radius `r` rolling below the x-axis
-and the part of the cycloid generated up to the parameter `τ`.
-The figure is updated when `τ` changes.
+Return the points of the `n`-th iteration of the Hilbert curve in the unit square.
 """
-function cycloid_figure(τ::Observable; r = 1.0)
-    color_rolled = RGBf(0.0, 0.0, 0.7) # as blue!70!black in the lecture notes
-    color_point = RGBf(0.8, 0.1, 0.1)
-    color_aux = RGBf(0.4, 0.4, 0.4)
-    xmin, xmax = -1.3 * r, 7.6 * r
+function hilbert_curve(n)
+    # Start with the initial points
+    # points = [(0.25, 0.25), (0.25, 0.75), (0.75, 0.75), (0.75, 0.25)]
+    points = [(0.5, 0.5)]
 
-    fig = Figure(size = (800, 380))
-    ax = Axis(fig[1, 1];
-              aspect = DataAspect(), yreversed = true,
-              # leave some space above u = 0 to avoid clipping the thick lines
-              limits = (xmin, xmax, -0.2 * r, 2.3 * r),
-              xaxisposition = :top, xticksvisible = false,
-              topspinevisible = false, rightspinevisible = false,
-              bottomspinevisible = false,
-              xgridvisible = false, ygridvisible = false,
-              xticks = ([0, π * r, 2π * r], [L"0", L"\pi r", L"2 \pi r"]),
-              yticks = ([0, r, 2r], [L"0", L"r", L"2 r"]),
-              xlabel = L"x", ylabel = L"u")
+    # Recursively generate the curve
+    scale = 0.5
+    for _ in 1:n
+        # Apply transformations to each quadrant
 
-    # the x-axis, along which the circle rolls
-    lines!(ax, [Point2f(xmin, 0), Point2f(xmax, 0)];
-            color = :black, linewidth = 1.5, linestyle = :solid)
-    # initial position of the circle
-    lines!(ax, [circle_point(0, s, r) for s in range(0, 2π, length = 200)];
-            color = color_aux, linestyle = :dot, linewidth = 1.5)
-    # part of the cycloid generated so far
-    lines!(ax, @lift([cycloid_point(t, r) for t in range(0, $τ, length = 400)]);
-            color = :black, linewidth = 4, linestyle = :solid)
-    # circle in its current position
-    lines!(ax, @lift([circle_point($τ, s, r) for s in range(0, 2π, length = 200)]);
-            color = :black, linewidth = 2, linestyle = :solid)
-    # distance traveled and rolled arc, both of length r τ
-    lines!(ax, @lift([Point2f(0, 0), contact_point($τ, r)]);
-            color = color_rolled, linewidth = 7, linestyle = :solid)
-    lines!(ax, @lift([circle_point($τ, s, r) for s in range(0, $τ, length = 200)]);
-            color = color_rolled, linewidth = 7, linestyle = :solid)
-    text!(ax, @lift(Point2f(r * $τ / 2, 0.08 * r)); text = L"r \tau",
-           color = color_rolled, align = (:center, :top),
-           visible = @lift($τ > 0.6))
-    # radii to the contact point and to the point on the cycloid, angle τ
-    lines!(ax, @lift([contact_point($τ, r), center_point($τ, r), cycloid_point($τ, r)]);
-            color = color_aux, linewidth = 1.5, linestyle = :solid)
-    lines!(ax, @lift([circle_point($τ, s, r; ρ = 0.3 * r) for s in range(0, $τ, length = 60)]);
-            color = color_aux, linewidth = 1.5, linestyle = :solid)
-    text!(ax, @lift(circle_point($τ, $τ / 2, r; ρ = 0.5 * r)); text = L"\tau",
-           align = (:center, :center), visible = @lift($τ > 0.6))
-    scatter!(ax, @lift([center_point($τ, r), contact_point($τ, r)]);
-             color = color_aux, marker = :circle, markersize = 8)
-    scatter!(ax, @lift([cycloid_point($τ, r)]);
-             color = color_point, marker = :circle, markersize = 18)
+        # Lower-left
+        p1 = [(y * scale, x * scale) for (x, y) in points]
+        # Upper-left
+        p2 = [(x * scale, y * scale + scale) for (x, y) in points]
+        # Upper-right
+        p3 = [(x * scale + scale, y * scale + scale) for (x, y) in points]
+        # Lower-right
+        p4 = [(scale * 2 - y * scale, scale - x * scale) for (x, y) in points]
 
-    # value of τ and explanation below the plot
-    Label(fig[2, 1], lift(t -> L"\tau = %$(format_decimal_comma(t / π))\,\pi", τ);
-          tellwidth = false)
-    explanation_rolling = rich("Der Kreis rollt ohne zu gleiten: ",
-                               "Der blaue Bogen ist so lang wie die Strecke ",
-                               rich("rτ"; font = :italic), ".")
-    explanation_cycloid = L"\text{Zykloide}\quad x = r (\tau - \sin \tau), \ u = r (1 - \cos \tau), \ \tau \in [0, 2 \pi]"
-    # rich text and LaTeX strings have different types, so we need `Observable{Any}`
-    explanation = Observable{Any}(explanation_rolling)
-    on(τ; update = true) do t
-        explanation[] = t < 2π - 1.0e-8 ? explanation_rolling : explanation_cycloid
+        points = vcat(p1, p2, p3, p4)
     end
-    Label(fig[3, 1], explanation; tellwidth = false)
-    rowgap!(fig.layout, 6)
-    # fixed height to avoid a jumping figure when the explanation changes
-    rowsize!(fig.layout, 3, Fixed(24))
 
+    return points
+end
+
+# ╔═╡ 1be07cef-4eb5-4728-9b5e-255f38c7f47c
+"""
+    hilbert_figure(n::Observable; fraction = Observable(1.0),
+                   show_previous = false, size = (800, 800))
+
+Create a figure of the `n`-th iteration of the Hilbert curve. Only the first
+`fraction` of the curve is drawn; for `fraction < 1`, a marker shows the
+current end point. If `show_previous` is `true`, the previous iteration
+`n - 1` is shown in gray in the background. The figure is updated when `n` or
+`fraction` change.
+"""
+function hilbert_figure(n::Observable; fraction = Observable(1.0),
+                        show_previous = false, size = (800, 800))
+    fig = Figure(; size)
+    ax = Axis(fig[1, 1];
+              title = lift(k -> "Hilbert-Kurve (Iteration $k)", n),
+              aspect = DataAspect(),
+              limits = (-0.01, 1.01, -0.01, 1.01))
+
+    # previous iteration in the background
+    lines!(ax, lift(k -> Point2f.(hilbert_curve(max(k - 1, 1))), n);
+           color = (:gray, 0.6), linestyle = :solid,
+           visible = lift(k -> show_previous && k > 1, n))
+
+    points = lift(k -> Point2f.(hilbert_curve(k)), n)
+    # number of points drawn so far
+    n_drawn = lift((p, f) -> max(1, round(Int, f * length(p))), points, fraction)
+    lines!(ax, lift((p, k) -> p[1:k], points, n_drawn);
+           color = Makie.wong_colors()[1], linestyle = :solid)
+    scatter!(ax, lift((p, k) -> [p[k]], points, n_drawn);
+             color = Makie.wong_colors()[2], marker = :circle,
+             visible = lift(f -> f < 1, fraction))
     return fig
 end
 
-# ╔═╡ f8138a6c-9b5a-4820-a6a1-d086a7cc911c
-"""
-    record_cycloid(; r = 1.0, framerate = 30,
-                   time_start = 1.5, time_rolling = 8.0, time_end = 3.0)
+# ╔═╡ c76c7d33-1bde-430a-83d4-7c0eefc071ab
+hilbert_figure(Observable(n_hilbert))
 
-Record a video of the circle with radius `r` rolling once and return the
-path to the video file. The video shows a still image for `time_start`
-seconds, the rolling motion for `time_rolling` seconds, and a still image
-of the complete cycloid for `time_end` seconds.
+# ╔═╡ 90c062b4-0230-4263-afe3-429285fe4fc6
 """
-function record_cycloid(; r = 1.0, framerate = 30,
-                        time_start = 1.5, time_rolling = 8.0, time_end = 3.0)
-    τ = Observable(0.0)
-    fig = cycloid_figure(τ; r)
-    times = range(0, time_start + time_rolling + time_end, step = 1 / framerate)
-    video_file = joinpath(mktempdir(), "cycloid.mp4")
+    record_hilbert(; n_max = 6, framerate = 30,
+                   time_drawing = 2.5, time_pause = 1.0)
+
+Record a video drawing the iterations `1:n_max` of the Hilbert curve one after
+another and return the path to the video file. Each iteration is drawn in
+`time_drawing` seconds and then shown completely for `time_pause` seconds.
+The previous iteration is shown in gray in the background.
+"""
+function record_hilbert(; n_max = 6, framerate = 30,
+                        time_drawing = 2.5, time_pause = 1.0)
+    n = Observable(1)
+    fraction = Observable(0.0)
+    fig = hilbert_figure(n; fraction, show_previous = true, size = (600, 600))
+    time_per_iteration = time_drawing + time_pause
+    times = range(0, n_max * time_per_iteration, step = 1 / framerate)
+    video_file = joinpath(mktempdir(), "hilbert.mp4")
     record(fig, video_file, times; framerate) do t
-        τ[] = 2π * clamp((t - time_start) / time_rolling, 0, 1)
+        k = min(n_max, 1 + floor(Int, t / time_per_iteration))
+        if n[] != k
+            n[] = k
+        end
+        t_local = t - (k - 1) * time_per_iteration
+        fraction[] = clamp(t_local / time_drawing, 0, 1)
     end
     return video_file
 end
+
+# ╔═╡ 30e65a6a-1fbf-4bd7-b591-9175e323ab31
+video_file_hilbert = record_hilbert();
+
+# ╔═╡ 73746e3f-1323-4553-af51-ed20782d916f
+LocalResource(video_file_hilbert)
+
+# ╔═╡ 66dcbf21-4915-4ace-86ce-41dbf08fb0f7
+"""
+    circle_figure(t::Observable)
+
+Create a figure of the unit circle with the point `u(t)`, the tangent vector
+`u'(t)`, and the acceleration vector `u''(t)`. The figure is updated when `t`
+changes.
+"""
+function circle_figure(t::Observable)
+    colors = Makie.wong_colors()
+
+    fig = Figure()
+    ax = Axis(fig[1, 1];
+              xlabel = L"x", ylabel = L"y", aspect = DataAspect(),
+              limits = (-1.5, 1.5, -1.5, 1.5))
+
+    ts = range(0.0, 2π, length = 500)
+    lines!(ax, cos.(ts), sin.(ts);
+           color = colors[1], linestyle = :solid)
+
+    x = lift(t -> [cos(t)], t)
+    y = lift(t -> [sin(t)], t)
+    scatter!(ax, x, y; color = colors[1], marker = :circle)
+
+    # tangent vector
+    arrows2d!(ax, x, y, lift(t -> [-sin(t)], t), lift(t -> [cos(t)], t);
+              color = colors[2], arrow_style...)
+    # acceleration vector
+    arrows2d!(ax, x, y, lift(t -> [-cos(t)], t), lift(t -> [-sin(t)], t);
+              color = colors[3], arrow_style...)
+
+    fig[1, 2] = Legend(fig,
+                       [LineElement(color = colors[1], linestyle = :solid),
+                        MarkerElement(color = colors[1], marker = :circle),
+                        arrow_legend_element(colors[2]),
+                        arrow_legend_element(colors[3])],
+                       [L"u([0, 2\pi])", L"u(t)", L"\dot{u}(t)", L"\ddot{u}(t)"];
+                       framevisible = false)
+    return fig
+end
+
+# ╔═╡ 80360c11-e4ac-4983-b57b-eed5b3f6b6b6
+circle_figure(Observable(t_circle))
+
+# ╔═╡ 261fa770-142b-4d3c-b400-a412678d4073
+"""
+    record_circle(; framerate = 30, time_start = 1.0, time_moving = 8.0,
+                  time_end = 1.0)
+
+Record a video of the point moving once around the circle together with its
+tangent and acceleration vectors and return the path to the video file.
+"""
+function record_circle(; framerate = 30, time_start = 1.0, time_moving = 8.0,
+                       time_end = 1.0)
+    t = Observable(0.0)
+    fig = circle_figure(t)
+    times = range(0, time_start + time_moving + time_end, step = 1 / framerate)
+    video_file = joinpath(mktempdir(), "circle.mp4")
+    record(fig, video_file, times; framerate) do s
+        t[] = 2π * clamp((s - time_start) / time_moving, 0, 1)
+    end
+    return video_file
+end
+
+# ╔═╡ 6babf093-7d14-4d78-9f77-f078b7e89c2d
+video_file_circle = record_circle();
+
+# ╔═╡ 132ae06b-70e0-4de3-adf4-18a2b6f40a86
+LocalResource(video_file_circle)
+
+# ╔═╡ f6a3ed58-74ad-4b4f-afc5-57d4ee957d2f
+"""
+    cycloid_figure(τ::Observable; r = 1.0, n_arcs = 3)
+
+Create a figure of `n_arcs` arcs of the cycloid generated by a circle with
+radius `r` rolling below the x-axis, with the cusps, the rolling circle, the
+point `u(τ)`, and the tangent vector `u'(τ)`. As in the lecture notes, the
+second coordinate points downward. The figure is updated when `τ` changes.
+"""
+function cycloid_figure(τ::Observable; r = 1.0, n_arcs = 3)
+    colors = Makie.wong_colors()
+
+    fig = Figure(size = (900, 250))
+    ax = Axis(fig[1, 1];
+              xlabel = L"x", ylabel = L"y",
+              aspect = DataAspect(), yreversed = true,
+              limits = (-1.2 * r, 2π * n_arcs * r + 1.2 * r, -1.2 * r, 3.2 * r))
+
+    # several arcs of the cycloid
+    τs = range(0.0, 2π * n_arcs, length = 1000)
+    lines!(ax, r .* (τs .- sin.(τs)), r .* (1 .- cos.(τs));
+           color = colors[1], linestyle = :solid)
+
+    # rolling circle in its current position
+    φ = range(0.0, 2π, length = 200)
+    lines!(ax, lift(τ -> r * τ .+ r .* cos.(φ), τ), r .+ r .* sin.(φ);
+           color = (:gray, 0.7), linestyle = :dash, linewidth = 1.5)
+
+    # cusps, where the curve is not regular
+    τ_cusps = 2π .* (0:n_arcs)
+    scatter!(ax, r .* τ_cusps, zero(τ_cusps);
+             color = :black, marker = :xcross)
+
+    # point on the curve and its tangent vector
+    x = lift(τ -> [r * (τ - sin(τ))], τ)
+    y = lift(τ -> [r * (1 - cos(τ))], τ)
+    scatter!(ax, x, y; color = colors[1], marker = :circle)
+    arrows2d!(ax, x, y, lift(τ -> [r * (1 - cos(τ))], τ), lift(τ -> [r * sin(τ)], τ);
+              color = colors[2], arrow_style...)
+
+    fig[1, 2] = Legend(fig,
+                       [LineElement(color = colors[1], linestyle = :solid),
+                        MarkerElement(color = :black, marker = :xcross),
+                        MarkerElement(color = colors[1], marker = :circle),
+                        arrow_legend_element(colors[2])],
+                       [L"u([0, %$(2 * n_arcs)\pi])", "Spitzen",
+                        L"u(\tau)", L"\dot{u}(\tau)"];
+                       framevisible = false)
+    return fig
+end
+
+# ╔═╡ a766161f-7658-4e08-b899-0b52f817e3a5
+cycloid_figure(Observable(τ_over_π_cycloid * π))
+
+# ╔═╡ 26a391fb-9d6d-4603-b531-10f6bbac57b7
+"""
+    record_cycloid(; r = 1.0, n_arcs = 3, framerate = 30, time_start = 1.0,
+                   time_rolling = 12.0, time_end = 1.0)
+
+Record a video of the circle with radius `r` rolling along `n_arcs` arcs of
+the cycloid and return the path to the video file.
+"""
+function record_cycloid(; r = 1.0, n_arcs = 3, framerate = 30, time_start = 1.0,
+                        time_rolling = 12.0, time_end = 1.0)
+    τ = Observable(0.0)
+    fig = cycloid_figure(τ; r, n_arcs)
+    times = range(0, time_start + time_rolling + time_end, step = 1 / framerate)
+    video_file = joinpath(mktempdir(), "cycloid.mp4")
+    record(fig, video_file, times; framerate) do t
+        τ[] = 2π * n_arcs * clamp((t - time_start) / time_rolling, 0, 1)
+    end
+    return video_file
+end
+
+# ╔═╡ 09964672-25ae-40f0-ba36-d0d6044ba76c
+video_file_cycloid = record_cycloid();
+
+# ╔═╡ f76436d6-db1b-4f35-8d37-3a48d9ee6d3a
+LocalResource(video_file_cycloid)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -236,7 +434,6 @@ PLUTO_PROJECT_TOML_CONTENTS = """
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
-Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [compat]
 CairoMakie = "~0.15.15"
@@ -250,7 +447,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.10.12"
 manifest_format = "2.0"
-project_hash = "a4509295aff382a2da34e9584503a533bc329612"
+project_hash = "1a5aef85d2cde3a2e129843e152363055b46c232"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -299,9 +496,9 @@ version = "0.1.45"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
-git-tree-sha1 = "7c2c19b5a26e601634bf718490b89d59685f122e"
+git-tree-sha1 = "0d64e8eff17936a5e10e61a9d054e1f716792da9"
 uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
-version = "4.7.1"
+version = "4.7.3"
 weakdeps = ["SparseArrays", "StaticArrays"]
 
     [deps.Adapt.extensions]
@@ -1432,9 +1629,9 @@ version = "0.5.2+0"
 
 [[deps.Roots]]
 deps = ["Accessors", "CommonSolve", "Printf"]
-git-tree-sha1 = "971f04b3780c0da4edf230573fc1aadc2c6e649e"
+git-tree-sha1 = "e6ffa7bd4f8d0b8744d18f219304738d952f9a37"
 uuid = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
-version = "3.0.10"
+version = "3.0.11"
 
     [deps.Roots.extensions]
     RootsChainRulesCoreExt = "ChainRulesCore"
@@ -1892,26 +2089,42 @@ version = "4.1.0+0"
 """
 
 # ╔═╡ Cell order:
-# ╟─04ef5781-8dc4-4531-913b-4a24c69d9e27
-# ╟─a06ebd00-a941-41a0-a178-842629cc51fd
-# ╟─3936bfd1-eb9f-4950-baa7-c38ef6509de3
-# ╟─763c2107-bc01-40c9-8892-94ebae03b6ac
-# ╟─74004499-0506-49aa-8664-86a86b87e90f
-# ╟─ca9b301d-141d-404c-8b8c-c697ebb9f173
-# ╟─ccd14c4f-479b-4db7-99b2-2006aab68204
-# ╟─ffc7095c-3651-4002-9bd9-5b6777b389a4
-# ╟─cf2ed291-4471-46ab-908b-c64a29b9455c
-# ╟─f1d34bb9-193f-4b84-9940-9d50c7d95ebc
-# ╟─9570c40f-0324-4119-ad65-0e7063a56422
-# ╠═0417be6b-910f-4029-a03a-2d5bf972ea1f
-# ╟─14660100-5804-4687-b5ed-116ff3c66b6e
-# ╠═686cc0fe-9691-4393-a032-8069bffb056a
-# ╠═20e0b94d-b82d-4faf-aa16-10c3ea00c2cf
-# ╠═9fa5b405-3318-417f-a26e-4fdc0e2f2921
-# ╠═2d2f6edf-16d5-4d46-ad54-2657064b6cc1
-# ╠═c8b44bda-3578-426d-a90c-5e1ff9587d72
-# ╠═76fc1015-a08e-4416-a5dc-173c57b29272
-# ╠═4c53b3fd-eee8-4940-8e1e-0cb3c693eddb
-# ╠═f8138a6c-9b5a-4820-a6a1-d086a7cc911c
+# ╟─e6c64c80-773b-11ef-2379-bf6609137e69
+# ╟─4071e4ca-4667-4015-b0fe-dcd7e778449a
+# ╟─79b6fedd-0fbb-44bb-a726-8798d4de6548
+# ╟─c76c7d33-1bde-430a-83d4-7c0eefc071ab
+# ╟─bfb6d0d1-997c-4751-897f-910a66243da1
+# ╟─30e65a6a-1fbf-4bd7-b591-9175e323ab31
+# ╟─73746e3f-1323-4553-af51-ed20782d916f
+# ╟─4d37daf1-3888-4321-bdef-00cd15e0d601
+# ╟─2e8a222b-1326-4ee8-b454-a786b4d163a0
+# ╟─80360c11-e4ac-4983-b57b-eed5b3f6b6b6
+# ╟─de3ff6a5-50e7-4d8b-ac96-5d7a2d2de94e
+# ╟─6babf093-7d14-4d78-9f77-f078b7e89c2d
+# ╟─132ae06b-70e0-4de3-adf4-18a2b6f40a86
+# ╟─90bcf152-0db7-46bc-a3c2-1a7df8acaaac
+# ╟─04445b06-e26c-4d87-a917-f31dd1b0fabb
+# ╟─a766161f-7658-4e08-b899-0b52f817e3a5
+# ╟─2c6ce84d-f4da-45ce-ba9f-5481a5075ac8
+# ╟─09964672-25ae-40f0-ba36-d0d6044ba76c
+# ╟─f76436d6-db1b-4f35-8d37-3a48d9ee6d3a
+# ╟─96351793-9bcc-4376-9c95-b6b42f061ad8
+# ╟─bc148aac-1ef7-4611-b187-72f1255ff05f
+# ╟─92377a23-ac4f-4d5f-9d57-a0a03693307c
+# ╟─4340e86a-e0fe-4cfe-9d1a-9bb686cbb2fd
+# ╠═42fa44f5-06df-41a1-9b33-71386a0cb6d2
+# ╟─e771a1f9-6813-4383-b34d-83530de4aa2e
+# ╠═f05a5972-58b1-4788-a0a8-24966d6714da
+# ╠═e21f7893-67e3-42ba-82e8-1297502cc1ea
+# ╠═b0d18f0a-7ae7-4c9e-9e29-2f190aaae1c2
+# ╠═0b22c223-c574-4d29-a988-b7f8ef0cc3fe
+# ╠═1f78b652-3d70-46a9-993b-9af85398177a
+# ╠═3147c22b-9859-4b67-b345-59ecdfaf504e
+# ╠═1be07cef-4eb5-4728-9b5e-255f38c7f47c
+# ╠═90c062b4-0230-4263-afe3-429285fe4fc6
+# ╠═66dcbf21-4915-4ace-86ce-41dbf08fb0f7
+# ╠═261fa770-142b-4d3c-b400-a412678d4073
+# ╠═f6a3ed58-74ad-4b4f-afc5-57d4ee957d2f
+# ╠═26a391fb-9d6d-4603-b531-10f6bbac57b7
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
